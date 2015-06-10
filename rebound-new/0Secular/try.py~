@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def pdf(x,xmin,xmax,mean):
+    
+    pi = np.pi
+    if x<mean:
+        pdf = 2/(xmin+xmax)/np.sqrt(2*pi)*np.exp(-9/2*(x-mean)**2/xmin**2)
+    else:
+        pdf = 2/(xmin+xmax)/np.sqrt(2*pi)*np.exp(-9/2*(x-mean)**2/xmax**2)
+
+    return pdf
+ 
+def randomvariate(pdf,n=1000,xmin=3,xmax=12,mean=6):  
+ 
+  # Calculates the minimal and maximum values of the PDF in the desired  
+  # interval. The rejection method needs these values in order to work  
+  # properly.  
+  x=np.linspace(xmin,xmax,1000)
+  y=np.zeros(len(x))
+  for i,xi in list(enumerate(x)):
+      y[i]=pdf(xi,xmin,xmax,mean)  
+  pmin=y.min()  
+  pmax=y.max()  
+   
+  # Counters  
+  naccept=0  
+  ntrial=0  
+   
+  # Keeps generating numbers until we achieve the desired n  
+  ran=[] # output list of random numbers  
+  while naccept<n:  
+      print n, naccept
+      x=np.random.uniform(xmin,xmax) # x'  
+      y=np.random.uniform(pmin,pmax) # y'  
+   
+      if y<pdf(x,xmin,xmax,mean):  
+          ran.append(x)  
+          naccept=naccept+1  
+      ntrial=ntrial+1  
+    
+      ran=np.asarray(ran)  
+    
+  return ran,ntrial  
+
+
+print randomvariate(pdf)
+
+'''
+value = [0]*100000
+for i in range(100000):
+    value[i] = random(12.,3.,6.)
+        
+
+plt.figure()
+plt.hist(value, bins=50)
+plt.show()
+'''
