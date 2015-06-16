@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import numpy.random
 import time
 import reboundxf
+from numpy import ndarray 
 
-def integration(tmax):  
+def integration(tmax,tau):  
 
 
     # Set up the integrator
@@ -43,15 +44,15 @@ def integration(tmax):
     NumPlanet = rebound.N-1
     times = np.linspace(0.,tmax,Noutputs)
     a = np.zeros((NumPlanet,Noutputs))
+    e = np.zeros((NumPlanet,Noutputs))
     x = np.zeros((NumPlanet,Noutputs))
     y = np.zeros((NumPlanet,Noutputs))
     step = 0
 
     # Set up Migration
     rebound.post_timestep_modifications = reboundxf.modify_elements()
-    #rebound.additional_forces = reboundxf.forces()
 
-    tauas = [0.,0.,0.,0.,0.,0.,0.,0.,-1.92e6]
+    tauas = [0.,0.,0.,0.,0.,0.,0.,0.,tau]
     reboundxf.set_migration(tauas)
     
 
@@ -67,21 +68,39 @@ def integration(tmax):
 
         for j in range(NumPlanet):
             a[j][i] = ps[j+1].calculate_orbit().a
+            e[j][i] = ps[j+1].calculate_orbit().e
             x[j][i] = ps[j+1].x
             y[j][i] = ps[j+1].y
-    return a,x,y,times
+
+    return a,e,x,y,times
 
 
 # Call and time the function
 #---------------------------------------------------------------------
 
+tmax = 100000.
+tau = -1.92e6
+
 time1 = time.time()
 
-a,x,y,times = integration(100000.)
+a,e,x,y,times = integration(tmax,tau)
 
 print time.time()-time1
 
+print len(a)
 print np.array(a[len(a)-1])
+
+# Write to File
+#---------------------------------------------------------------------
+
+FileName = 'data/tmax'+str(int(tmax))+'_tau'+str(int(tau))+'.txt'
+Data = open(FileName,'a')
+
+for i,time in list(enumerate(times,start=0)):
+    for j in (range(len(a))):
+        Data.write('\t'+' '+str(a[j][i])+' '+str(e[j][i])+' '+str(x[j][i])+' '+str(y[j][i])+'\n')
+Data.write('\n')
+Data.close()
 
 
 # plot

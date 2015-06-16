@@ -76,7 +76,7 @@ Freq = pool.map(EigFrequencies, Planets)
 
 Freq = np.array(Freq)
 
-print (Freq[0,:]-Freq[9,:]
+print (Freq[0,:]-Freq[9,:])
 
 plt.figure()
 plt.plot(7.6+np.linspace(0.01,0.3,10),Freq[:,0],label='Freq1')
