@@ -4,19 +4,25 @@ import matplotlib.pyplot as plt
 import numpy.random
 import time
 import reboundxf
+from scipy import optimize
 
-def integration(tmax):  
+# Call and time the function
+#---------------------------------------------------------------------
 
+comptime = []
+
+tmax = np.logspace(0,4,num=20)
+
+for times in tmax:
+    rebound.reset()
 
     # Set up the integrator
     #---------------------------------------------------------------------
 
-    rebound.reset()
-
     rebound.dt=0.1*np.sqrt(0.09100**3) 
     rebound.integrator='whfast'
     rebound.G=4.*np.pi**2
-   
+
     # Add particles
     #---------------------------------------------------------------------
 
@@ -34,63 +40,19 @@ def integration(tmax):
    
     rebound.move_to_com()
     ps = rebound.particles
-
-    # Set up variables 
-    #---------------------------------------------------------------------
-
-    dt = rebound.dt 
-    Noutputs = 10000
-    NumPlanet = rebound.N-1
-    times = np.linspace(0.,tmax,Noutputs)
-    a = np.zeros((NumPlanet,Noutputs))
-    x = np.zeros((NumPlanet,Noutputs))
-    y = np.zeros((NumPlanet,Noutputs))
-    step = 0
-
-    # Set up Migration
-    #rebound.post_timestep_modifications = reboundxf.modify_elements()
-    rebound.additional_forces = reboundxf.forces()
-
-    tauas = [0.,0.,0.,0.,0.,0.,0.,0.,-2.55e6]
-    reboundxf.set_migration(tauas)
-    
-
-    # Write the semi-major axis and coordinates to a list for each planet
-    #---------------------------------------------------------------------
-
-    for i,time in list(enumerate(times)):
-        step += 1
-        if step%1000 == 0:
-            print time
-
-        rebound.integrate(time)
-
-
-        for j in range(NumPlanet):
-            a[j][i] = ps[j+1].calculate_orbit().a
-            x[j][i] = ps[j+1].x
-            y[j][i] = ps[j+1].y
-    return a,x,y,times
-
-
-# Call and time the function
-#---------------------------------------------------------------------
-
-comptime = []
-
-tmax = np.logspace(0,6,num=11)
-
-for times in tmax:
     print str(times)+':'
     time1 = time.time()
-    a,x,y,times = integration(times)
+    rebound.integrate(times)
     comptime.append(time.time()-time1)
 
-print times
-print comptime
+para, pcov = optimize.curve_fit(lambda x,a,b: a*x**b,tmax,comptime)
+
+print para
+
+x = np.logspace(0,4,100)
+y = para[0]*x**para[1]
 
 plt.figure()
-plt.set_xscale('log')
-plt.set_yscale('log')
-plt.plot(tmax,comptime)
+plt.loglog(tmax,comptime,'.')
+plt.loglog(x,y)
 plt.show()

@@ -78,7 +78,7 @@ def integration(tmax,tau):
 # Call and time the function
 #---------------------------------------------------------------------
 
-tmax = 100000.
+tmax = 10000.
 tau = -1.92e6
 
 time1 = time.time()
