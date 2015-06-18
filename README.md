@@ -17,8 +17,28 @@ The majority of the code uses [Rebound](https://github.com/hannorein/rebound) wh
 
 Example code used for a simple integration: 
 ```python
-s = "Python syntax highlighting"
-print s
+  # Choose the model for your initial conditions
+  model='simple'
+    
+  # Choose the final time in years
+  tmax = 100. # Final time in years
+
+  # Choose the Number of Outputs
+  # It will save semi-major axis, eccentricity, and coordinates every (tmax/Noutputs) years
+  Noutputs = 10000
+    
+  InitializeInteg(model)
+  InitOrbitalElem(Noutputs,tmax)
+  OutputOrbit(Noutputs)
+
+  PlotLatex()
+  Plot_a()
+  Plot_e()
+  Plot_Orbit()
+  Plot_xy()
+
+  # Show the plots
+    plt.show()
 ```
 
 
