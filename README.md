@@ -6,6 +6,6 @@ The Kepler satellite has found several compact solar systems containing earth ma
 Destabilization due to an MMR has been ruled out because for a giant planet to be in a 2:1 resonance with the outermost planet would require it to have a semi-major axis of ~0.7 AU at which point it would have been detected by Kepler. Therefore, the most likely cause for destabilization would be a secular perturbation due to two giant planets further out, ~5 AU, with an eigenfrequency resonant with an eigenfrequency of one of the inner planets.
 
 
-####integrator.py
+#####integrator.py
 
-####Secular
+#####Secular
