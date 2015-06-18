@@ -27,13 +27,25 @@ Example code used for a simple integration:
   # It will save semi-major axis, eccentricity, and coordinates every (tmax/Noutputs) years
   Noutputs = 10000
     
+  # Initializes the Rebound code, adds the planets and creates a pointer to the planets. 
   InitializeInteg(model)
+  
+  # Builds Numpy arrays to hold the values for the orbital elements, the coordinates and time 
   InitOrbitalElem(Noutputs,tmax)
+  
+  #Integrates from t=0 to t=tmax
   OutputOrbit(Noutputs)
 
+  # Allows plot captions to be written in LateX
   PlotLatex()
+  
+  #Plots semi-major axis vs. time for all planets
   Plot_a()
+  
+  #Plots eccentricity vs. time for all the planets
   Plot_e()
+  
+  #Plots position of the planets first in 3D and then in the xy-plane
   Plot_Orbit()
   Plot_xy()
 
