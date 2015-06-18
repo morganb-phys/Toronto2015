@@ -15,7 +15,15 @@ The majority of the code uses [Rebound](https://github.com/hannorein/rebound) wh
 
 #####integrator.py
 
-**Simple()**
+Example code used for a simple integration: 
+```python
+s = "Python syntax highlighting"
+print s
+```
+
+
+*Simple()* 
+
 
 
 #####Secular
