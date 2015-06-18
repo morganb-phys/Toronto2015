@@ -172,7 +172,7 @@ def OutputOrbit():
         step += 1
 
         # Prints an update to screen on how far along integration is.
-        if step%100 == 0:
+        if step%10000 == 0:
             print time
 
         # Integrate from rebound.t (previous time) to the new time
@@ -231,8 +231,8 @@ def PlotLatex():
 if __name__=="__main__":
     
     model='simple' # Choose the initial conditions
-    tmax = 100. # Final time in years
-    Noutputs = 1000 # Number of outputs
+    tmax = 1000. # Final time in years
+    Noutputs = 50000 # Number of outputs
     
     # Begins timing the integration
     time1 = time.time()
