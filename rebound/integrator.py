@@ -9,6 +9,7 @@ import time
 from mpl_toolkits.mplot3d import Axes3D
 
 
+# Data taken from http://kepler.nasa.gov/Mission/discoveries/
 def NASAPlanets():
 
     K11 = rebound.Particle( m=0.950 )
@@ -26,8 +27,16 @@ def NASAPlanets():
     rebound.add( primary=K11, m=7.90121e-5, a=0.46600, 
                  e=0., inc=1.5685 ) #K11g
 
+
+
+# The next three models are taken from: 
+# Migaszewski, C., Slonina, M., Gozdziewski, K., 2012, MNRAS, 427, 770
+# Anomaly is given by 
+
+
+#Model I - Only the mass of the star is fixed
 def MigaI():
-    # Model I
+
     rebound.add( primary=K11, m=1.3122e-5, a=0.091089, anom=0.4528,
                  e=0.0149, omega=-0.83, inc=1.54, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8744e-5, a=0.106522, anom=2.9540,
@@ -41,9 +50,9 @@ def MigaI():
     rebound.add( primary=K11, m=5.6238e-5, a=0.463918, anom=0.6021,
                  e=0.2601, omega=-3.11, inc=1.57, Omega=-0.6 )  #K11g
 
-
+# Model II - Eccentricity of Kepler-11g is fixed at 0
 def MigaII():
-    # Model II
+ 
     rebound.add( primary=K11, m=1.3122e-5, a=0.091087, anom=0.4528,
                  e=0.0209, omega=1.278, inc=1.54)#, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8744e-5, a=0.106521, anom=2.9540,
@@ -57,10 +66,11 @@ def MigaII():
     rebound.add( primary=K11, m=9.3729e-6, a=0.463924, anom=0.6021,
                  e=0., inc=1.58)#, Omega=0.646 )  #K11g
 
-
+# Model III - Eccentricity of Kepler-11g fixed and Longitude of ascending 
+#             Node fixed for Kepler-11b and Kepler-11g
+# PRETTY GOOD!!!
 def MigaIII():
 
-    # Model III PRETTY GOOD!!!
     rebound.add( primary=K11, m=1.2497e-5, a=0.091088, anom=0.4528,
                  e=0.0166, omega=0.436, inc=1.54, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8431e-5, a=0.106519, anom=2.9540,
@@ -75,9 +85,9 @@ def MigaIII():
                  e=0., inc=1.57, Omega=0. )  #K11g
 
 
-
+# Data taken from Mahajan N., Wu Y., 2014. ApJ, 795, 32
 def Yanqin():
-    # Yanqin... OKAY?
+
     rebound.add( primary=K11, m=1.2e-5, a=0.091110, anom=0.4528,
                  e=0.0031, inc=1.54 )  #K11b       , omega=-1.861
     rebound.add( primary=K11, m=3.6e-5, a=0.106497, anom=2.9540,
@@ -92,18 +102,26 @@ def Yanqin():
                  e=0. , inc=1.57 )  #K11g
 
 
-
+# Initializes all of the important variables that are passed around functions
+# To use any of these variables in another script call cfg.variable_name
 def InitOrbitalElem(Noutputs,tmax):
+    #Number of Planets
     cfg.NumPlanet = rebound.N-1
+    
+    # Orbital elements semi-major axis and eccentricity
     cfg.a = np.zeros((cfg.NumPlanet,Noutputs))
     cfg.e = np.zeros((cfg.NumPlanet,Noutputs))
+
+    # Cartesian coordinates
     cfg.x = np.zeros((cfg.NumPlanet,Noutputs))
     cfg.y = np.zeros((cfg.NumPlanet,Noutputs))
     cfg.z = np.zeros((cfg.NumPlanet,Noutputs))
+
+    # The times at which it will output the orbital elements and coordinates
     cfg.times = np.linspace(0.,tmax,Noutputs)
     
 
-
+# This will set up the Kepler system so that it can be integrated
 def InitializeInteg(tmax,model,Noutputs):
 
     # Resets any values stored by rebound
@@ -118,9 +136,8 @@ def InitializeInteg(tmax,model,Noutputs):
     # Sets G so units are AU, years, and solar masses
     rebound.G=4.*np.pi**2
 
-
+    # Chooses which initial conditions to use
     if model=='simple':
-        # Add particles with values from http://kepler.nasa.gov/Mission/discoveries/
         NASAPlanets()
     elif model=='MigaI':
         MigaI()
@@ -134,21 +151,34 @@ def InitializeInteg(tmax,model,Noutputs):
         print '\nNot a valid model. Please choose from:\nsimple, MigaI, MigaII, MigaIII, or Yanqin\n'
         sys.exit()
     
+    # Moves the system to the center of momentum frame
     rebound.move_to_com()
 
+    # Pointer for the planets where ps[0]=star and ps[1] is the first planet
     global ps; ps = rebound.particles
 
 
+# Integrates from 0 to tmax and outputs orbital elements 
+# and coordinates at each time step.
 def OutputOrbit():
 
+    # Initializes a counter for the number of steps
     step = 0
+
+    # Runs through the times 
     for i,time in enumerate(cfg.times):
+        
+        #Updates the counter
         step += 1
+
+        # Prints an update to screen on how far along integration is.
         if step%100 == 0:
             print time
 
+        # Integrate from rebound.t (previous time) to the new time
         rebound.integrate(time)
         
+        # Writes the orbital elements and coordinates to cfg
         for j in range(cfg.NumPlanet):
             cfg.a[j][i] = ps[j+1].calculate_orbit().a
             cfg.e[j][i] = ps[j+1].calculate_orbit().e
@@ -156,6 +186,8 @@ def OutputOrbit():
             cfg.y[j][i] = ps[j+1].y
             cfg.z[j][i] = ps[j+1].z
 
+
+# Plots Semi-Major axis vs. Time
 def Plot_a():
     plt.figure()
     plt.xlabel('Time (y)')
@@ -166,7 +198,7 @@ def Plot_a():
     plt.legend()
     
 
-
+# Plots Eccentricity vs. Time
 def Plot_e():
     plt.figure()
     plt.xlabel('Time (y)')
@@ -176,6 +208,8 @@ def Plot_e():
         plt.plot(cfg.times,cfg.e[Planet],label=Names[Planet])
     plt.legend()
 
+
+# 3D plot of the orbits
 def Plot_Orbit():
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -188,32 +222,34 @@ def Plot_Orbit():
                    c=Colours[Planet],edgecolors='none', label=Names[Planet])
     plt.legend()
 
+
+# Writes plot text in LateX
 def PlotLatex():
     plt.rc('text', usetex=True)
     plt.rc('font', **{'family':'serif','serif':['Helvetica']})
 
 if __name__=="__main__":
     
-    model='simple'
-    tmax = 100. #years
-    Noutputs = 1000
+    model='simple' # Choose the initial conditions
+    tmax = 100. # Final time in years
+    Noutputs = 1000 # Number of outputs
+    
+    # Begins timing the integration
     time1 = time.time()
 
     InitializeInteg(tmax,model,Noutputs)
-
-    dt = rebound.dt
     InitOrbitalElem(Noutputs,tmax)
-
     OutputOrbit()
 
+    # Prints total computational time to screen
     print time.time() - time1
-
 
     PlotLatex()
     Plot_a()
     Plot_e()
     Plot_Orbit()
 
+    # Show the plots
     plt.show()
 
     
