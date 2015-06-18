@@ -8,6 +8,22 @@ import matplotlib.pyplot as plt
 import time
 from mpl_toolkits.mplot3d import Axes3D
 
+def Simple():
+
+    K11 = rebound.Particle( m=0.950 )
+    rebound.add( K11 )
+    rebound.add( primary=K11, m=6.00492e-6, a=0.09100, 
+                 e=0.045 ) #K11b
+    rebound.add( primary=K11, m=9.16540e-6, a=0.10700,
+                 e=0.026 ) #K11c
+    rebound.add( primary=K11, m=2.30715e-5, a=0.15500,
+                 e=0.004 ) #K11d
+    rebound.add( primary=K11, m=2.52839e-5, a=0.19500,
+                 e=0.012 ) #K11e
+    rebound.add( primary=K11, m=6.32097e-6, a=0.25000,
+                 e=0.013 ) #K11f
+    rebound.add( primary=K11, m=7.90121e-5, a=0.46600, 
+                 e=0. ) #K11g
 
 # Data taken from http://kepler.nasa.gov/Mission/discoveries/
 def NASAPlanets():
@@ -37,6 +53,8 @@ def NASAPlanets():
 #Model I - Only the mass of the star is fixed
 def MigaI():
 
+    K11 = rebound.Particle( m=0.950 )
+    rebound.add( K11 )
     rebound.add( primary=K11, m=1.3122e-5, a=0.091089, anom=0.4528,
                  e=0.0149, omega=-0.83, inc=1.54, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8744e-5, a=0.106522, anom=2.9540,
@@ -53,6 +71,8 @@ def MigaI():
 # Model II - Eccentricity of Kepler-11g is fixed at 0
 def MigaII():
  
+    K11 = rebound.Particle( m=0.950 )
+    rebound.add( K11 )
     rebound.add( primary=K11, m=1.3122e-5, a=0.091087, anom=0.4528,
                  e=0.0209, omega=1.278, inc=1.54)#, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8744e-5, a=0.106521, anom=2.9540,
@@ -71,6 +91,8 @@ def MigaII():
 # PRETTY GOOD!!!
 def MigaIII():
 
+    K11 = rebound.Particle( m=0.950 )
+    rebound.add( K11 )
     rebound.add( primary=K11, m=1.2497e-5, a=0.091088, anom=0.4528,
                  e=0.0166, omega=0.436, inc=1.54, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8431e-5, a=0.106519, anom=2.9540,
@@ -88,6 +110,8 @@ def MigaIII():
 # Data taken from Mahajan N., Wu Y., 2014. ApJ, 795, 32
 def Yanqin():
 
+    K11 = rebound.Particle( m=0.950 )
+    rebound.add( K11 )
     rebound.add( primary=K11, m=1.2e-5, a=0.091110, anom=0.4528,
                  e=0.0031, inc=1.54 )  #K11b       , omega=-1.861
     rebound.add( primary=K11, m=3.6e-5, a=0.106497, anom=2.9540,
@@ -122,13 +146,10 @@ def InitOrbitalElem(Noutputs,tmax):
     
 
 # This will set up the Kepler system so that it can be integrated
-def InitializeInteg(tmax,model,Noutputs):
+def InitRebound():
 
     # Resets any values stored by rebound
     rebound.reset()
-
-    # Sets the time step to tenth of Inner Period
-    rebound.dt=0.1*np.sqrt(0.09100**3)
 
     # Chooses whfast as an integrator
     rebound.integrator='whfast'
@@ -136,8 +157,11 @@ def InitializeInteg(tmax,model,Noutputs):
     # Sets G so units are AU, years, and solar masses
     rebound.G=4.*np.pi**2
 
+def AddPlanets(model):
     # Chooses which initial conditions to use
     if model=='simple':
+        Simple()
+    elif model=='NASA':
         NASAPlanets()
     elif model=='MigaI':
         MigaI()
@@ -151,16 +175,24 @@ def InitializeInteg(tmax,model,Noutputs):
         print '\nNot a valid model. Please choose from:\nsimple, MigaI, MigaII, MigaIII, or Yanqin\n'
         sys.exit()
     
+def ArrangeSys():
     # Moves the system to the center of momentum frame
     rebound.move_to_com()
 
     # Pointer for the planets where ps[0]=star and ps[1] is the first planet
     global ps; ps = rebound.particles
+    
+    # Sets the time step to tenth of Inner Period
+    rebound.dt=0.1*np.sqrt(ps[1].calculate_orbit().a**3)
 
+def InitializeInteg(model):
+    InitRebound()
+    AddPlanets(model)
+    ArrangeSys()
 
 # Integrates from 0 to tmax and outputs orbital elements 
 # and coordinates at each time step.
-def OutputOrbit():
+def OutputOrbit(Noutputs):
 
     # Initializes a counter for the number of steps
     step = 0
@@ -172,7 +204,7 @@ def OutputOrbit():
         step += 1
 
         # Prints an update to screen on how far along integration is.
-        if step%10000 == 0:
+        if step%(Noutputs/10) == 0:
             print time
 
         # Integrate from rebound.t (previous time) to the new time
@@ -193,8 +225,10 @@ def Plot_a():
     plt.xlabel('Time (y)')
     plt.ylabel('Semi-Major Axis (AU)')
     Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
+    Colours = ['r','y','g','b','c','k','m','#fa8a29']
     for Planet in range(cfg.NumPlanet):
-        plt.plot(cfg.times,cfg.a[Planet],label=Names[Planet])
+        plt.plot(cfg.times,cfg.a[Planet],
+                 color=Colours[Planet],label=Names[Planet])
     plt.legend()
     
 
@@ -204,10 +238,23 @@ def Plot_e():
     plt.xlabel('Time (y)')
     plt.ylabel('Eccentricity')
     Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
+    Colours = ['r','y','g','b','c','k','m','#fa8a29']
     for Planet in range(cfg.NumPlanet):
-        plt.plot(cfg.times,cfg.e[Planet],label=Names[Planet])
+        plt.plot(cfg.times,cfg.e[Planet],
+                 color=Colours[Planet],label=Names[Planet])
     plt.legend()
 
+# Plot in xy-Plane
+def Plot_xy():
+    plt.figure()
+    plt.xlabel('x')
+    plt.ylabel('y')
+    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
+    Colours = ['r','y','g','b','c','k','m','#fa8a29']
+    for Planet in range(cfg.NumPlanet):
+        plt.plot(cfg.x[Planet],cfg.y[Planet],'.',
+                 color=Colours[Planet],label=Names[Planet])
+    plt.legend()
 
 # 3D plot of the orbits
 def Plot_Orbit():
@@ -216,7 +263,7 @@ def Plot_Orbit():
     plt.xlabel('x')
     plt.ylabel('y')
     Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Colours = ['r','y','g','b','c','k','m']
+    Colours = ['r','y','g','b','c','k','m','#fa8a29']
     for Planet in range(cfg.NumPlanet):
         ax.scatter(cfg.x[Planet],cfg.y[Planet],cfg.z[Planet],'o',s=5,
                    c=Colours[Planet],edgecolors='none', label=Names[Planet])
@@ -230,16 +277,22 @@ def PlotLatex():
 
 if __name__=="__main__":
     
-    model='simple' # Choose the initial conditions
+    #model='simple' # Choose the initial conditions
+    #model='NASA'
+    #model='MigaI'
+    #model='MigaII'
+    #model='MigaIII'
+    model='Yanqin'
+
     tmax = 1000. # Final time in years
-    Noutputs = 50000 # Number of outputs
+    Noutputs = 10000 # Number of outputs
     
     # Begins timing the integration
     time1 = time.time()
 
-    InitializeInteg(tmax,model,Noutputs)
+    InitializeInteg(model)
     InitOrbitalElem(Noutputs,tmax)
-    OutputOrbit()
+    OutputOrbit(Noutputs)
 
     # Prints total computational time to screen
     print time.time() - time1
@@ -248,6 +301,7 @@ if __name__=="__main__":
     Plot_a()
     Plot_e()
     Plot_Orbit()
+    Plot_xy()
 
     # Show the plots
     plt.show()
