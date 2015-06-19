@@ -74,17 +74,17 @@ def MigaII():
     K11 = rebound.Particle( m=0.950 )
     rebound.add( K11 )
     rebound.add( primary=K11, m=1.3122e-5, a=0.091087, anom=0.4528,
-                 e=0.0209, omega=1.278, inc=1.54)#, Omega=0. )  #K11b
+                 e=0.0209, omega=1.278, inc=1.54, Omega=0. )  #K11b
     rebound.add( primary=K11, m=2.8744e-5, a=0.106521, anom=2.9540,
-                 e=0.0240, omega=1.528, inc=1.59)#, Omega=0.059 )  #K11c
+                 e=0.0240, omega=1.528, inc=1.59, Omega=0.059 )  #K11c
     rebound.add( primary=K11, m=2.8744e-5, a=0.154233, anom=-0.1530,
-                 e=0.0153, omega=2.588, inc=1.56)#, Omega=-0.401 )  #K11d
+                 e=0.0153, omega=2.588, inc=1.56, Omega=-0.401 )  #K11d
     rebound.add( primary=K11, m=3.2805e-5, a=0.193926, anom=1.3164,
-                 e=0.0201, omega=-3.041, inc=1.55)#, Omega=-0.384 )  #K11e
+                 e=0.0201, omega=-3.041, inc=1.55, Omega=-0.384 )  #K11e
     rebound.add( primary=K11, m=1.3747e-5, a=0.249511, anom=0.3916,
-                 e=0.0081, omega=-2.090, inc=1.56)#, Omega=-0.436 )  #K11f
+                 e=0.0081, omega=-2.090, inc=1.56, Omega=-0.436 )  #K11f
     rebound.add( primary=K11, m=9.3729e-6, a=0.463924, anom=0.6021,
-                 e=0., inc=1.58)#, Omega=0.646 )  #K11g
+                 e=0., inc=1.58, Omega=0.646 )  #K11g
 
 # Model III - Eccentricity of Kepler-11g fixed and Longitude of ascending 
 #             Node fixed for Kepler-11b and Kepler-11g
@@ -113,15 +113,15 @@ def Yanqin():
     K11 = rebound.Particle( m=0.950 )
     rebound.add( K11 )
     rebound.add( primary=K11, m=1.2e-5, a=0.091110, anom=0.4528,
-                 e=0.0031, inc=1.54 )  #K11b       , omega=-1.861
+                 e=0.0031, inc=1.54, omega=-1.861 )  #K11b       
     rebound.add( primary=K11, m=3.6e-5, a=0.106497, anom=2.9540,
-                 e=0.0028, inc=1.55 )  #K11c      , omega=-1.170
+                 e=0.0028, inc=1.55, omega=-1.170 )  #K11c      
     rebound.add( primary=K11, m=2.3e-5, a=0.154141, anom=-0.1530,
-                 e=0.0195, inc=1.59 )  #K11d      , omega=-0.709
+                 e=0.0195, inc=1.59, omega=-0.709 )  #K11d      
     rebound.add( primary=K11, m=2.8e-5, a=0.193972, anom=1.3164,
-                 e=0.0160, inc=1.55 )  #K11e   , omega=-1.570
+                 e=0.0160, inc=1.55, omega=-1.570 )  #K11e   
     rebound.add( primary=K11, m=1.0e-5, a=0.249498, anom=0.3916,
-                 e=0.0125, inc=1.56 )  #K11f   , omega=-1.872
+                 e=0.0125, inc=1.56, omega=-1.872 )  #K11f   
     rebound.add( primary=K11, m=2.8e-6, a=0.463981, anom=0.6021,
                  e=0. , inc=1.57 )  #K11g
 
@@ -135,6 +135,7 @@ def InitOrbitalElem(Noutputs,tmax):
     # Orbital elements semi-major axis and eccentricity
     cfg.a = np.zeros((cfg.NumPlanet,Noutputs))
     cfg.e = np.zeros((cfg.NumPlanet,Noutputs))
+    cfg.inc = np.zeros((cfg.NumPlanet,Noutputs))
 
     # Cartesian coordinates
     cfg.x = np.zeros((cfg.NumPlanet,Noutputs))
@@ -146,13 +147,13 @@ def InitOrbitalElem(Noutputs,tmax):
     
 
 # This will set up the Kepler system so that it can be integrated
-def InitRebound():
+def InitRebound(integrator):
 
     # Resets any values stored by rebound
     rebound.reset()
 
     # Chooses whfast as an integrator
-    rebound.integrator='whfast'
+    rebound.integrator=integrator
 
     # Sets G so units are AU, years, and solar masses
     rebound.G=4.*np.pi**2
@@ -185,8 +186,8 @@ def ArrangeSys():
     # Sets the time step to tenth of Inner Period
     rebound.dt=0.1*np.sqrt(ps[1].calculate_orbit().a**3)
 
-def InitializeInteg(model):
-    InitRebound()
+def InitializeInteg(model,integrator):
+    InitRebound(integrator)
     AddPlanets(model)
     ArrangeSys()
 
@@ -214,35 +215,43 @@ def OutputOrbit(Noutputs):
         for j in range(cfg.NumPlanet):
             cfg.a[j][i] = ps[j+1].calculate_orbit().a
             cfg.e[j][i] = ps[j+1].calculate_orbit().e
+            cfg.inc[j][i] = ps[j+1].calculate_orbit().inc
             cfg.x[j][i] = ps[j+1].x
             cfg.y[j][i] = ps[j+1].y
             cfg.z[j][i] = ps[j+1].z
 
+def Print2File(array,FileName):
+    Data = open('data/'+FileName+'.txt', 'a')
+    [Planet,Time] = np.ma.shape(array)
+    for t in range(Time):
+        output = ''
+        for p in range(Planet):
+            output = output+str(array[p,t])+' '
+        Data.write(output+'\n')
+    Data.write('\n')
+    Data.close()
+
+def PlotvTime(array,ylabel):
+    plt.figure()
+    plt.xlabel('Time (y)')
+    plt.ylabel(ylabel)
+    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
+    Colours = ['r','y','g','b','c','k','m','#fa8a29']
+    for Planet in range(cfg.NumPlanet):
+        plt.plot(cfg.times,array[Planet],
+                 color=Colours[Planet],label=Names[Planet])
+    plt.legend()
 
 # Plots Semi-Major axis vs. Time
 def Plot_a():
-    plt.figure()
-    plt.xlabel('Time (y)')
-    plt.ylabel('Semi-Major Axis (AU)')
-    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Colours = ['r','y','g','b','c','k','m','#fa8a29']
-    for Planet in range(cfg.NumPlanet):
-        plt.plot(cfg.times,cfg.a[Planet],
-                 color=Colours[Planet],label=Names[Planet])
-    plt.legend()
+    PlotvTime(cfg.a,'Semi-Major Axis (AU)')
     
+def Plot_inc():
+    PlotvTime(cfg.inc*180/np.pi,'Inclination ( $^{\circ}$ )')
 
 # Plots Eccentricity vs. Time
 def Plot_e():
-    plt.figure()
-    plt.xlabel('Time (y)')
-    plt.ylabel('Eccentricity')
-    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Colours = ['r','y','g','b','c','k','m','#fa8a29']
-    for Planet in range(cfg.NumPlanet):
-        plt.plot(cfg.times,cfg.e[Planet],
-                 color=Colours[Planet],label=Names[Planet])
-    plt.legend()
+    PlotvTime(cfg.e,'Eccentricity')
 
 # Plot in xy-Plane
 def Plot_xy():
@@ -283,23 +292,32 @@ if __name__=="__main__":
     #model='MigaII'
     #model='MigaIII'
     model='Yanqin'
+    integrator = 'ias15'
 
-    tmax = 1000. # Final time in years
-    Noutputs = 10000 # Number of outputs
+    tmax = 10000. # Final time in years
+    Noutputs = 1000 # Number of outputs
     
     # Begins timing the integration
     time1 = time.time()
 
-    InitializeInteg(model)
+    InitializeInteg(model,integrator)
     InitOrbitalElem(Noutputs,tmax)
     OutputOrbit(Noutputs)
 
     # Prints total computational time to screen
     print time.time() - time1
 
+    times = np.reshape(cfg.times,[1,Noutputs])
+    OrbElem = np.concatenate((times,cfg.a,cfg.e))
+    Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
+
+    Print2File(OrbElem,str(int(tmax))+model+integrator+'_OrbElem')
+    Print2File(OrbElem,str(int(tmax))+model+integrator+'_Coord')
+
     PlotLatex()
     Plot_a()
     Plot_e()
+    Plot_inc()
     Plot_Orbit()
     Plot_xy()
 
