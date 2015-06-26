@@ -107,6 +107,25 @@ def MigaIII():
                  e=0., inc=1.57, Omega=0. )  #K11g
 
 
+# Model IVa 
+def MigaIVa():
+
+    K11 = rebound.Particle( m=0.950 )
+    rebound.add( K11 )
+    rebound.add( primary=K11, m=7.456e-6, a=0.091113, MEAN=3.122075,
+                 e=0.04423, omega=0.3604, inc=1.54 )  #K11b
+    rebound.add( primary=K11, m=1.070e-5, a=0.106505, MEAN=3.658224,
+                 e=0.01719, omega=0.9726, inc=1.55 )  #K11c
+    rebound.add( primary=K11, m=1.779e-5, a=0.154243, MEAN=0.711965,
+                 e=0.00633, omega=2.4566, inc=1.59 )  #K11d
+    rebound.add( primary=K11, m=3.426e-5, a=0.193940, MEAN=5.559193,
+                 e=0.00258, omega=4.1323, inc=1.55 )  #K11e
+    rebound.add( primary=K11, m=2.378e-5, a=0.249511, MEAN=1.598297,
+                 e=0.01073, omega=6.2107, inc=1.56 )  #K11f
+    rebound.add( primary=K11, m=7.952e-5, a=0.463991, MEAN=5.868932,
+                 e=0., inc=1.57, Omega=0. )  #K11g
+
+
 # Data taken from Mahajan N., Wu Y., 2014. ApJ, 795, 32
 def Yanqin():
 
@@ -128,19 +147,20 @@ def Yanqin():
 
 # Initializes all of the important variables that are passed around functions
 # To use any of these variables in another script call cfg.variable_name
-def InitOrbitalElem(Noutputs,tmax):
+def InitOrbitalElem(VarOut,Noutputs,tmax):
+    
+    OrbOut = VarOut[0]
+    CoordOut = VarOut[1]
+
     #Number of Planets
     cfg.NumPlanet = rebound.N-1
     
-    # Orbital elements semi-major axis and eccentricity
-    cfg.a = np.zeros((cfg.NumPlanet,Noutputs))
-    cfg.e = np.zeros((cfg.NumPlanet,Noutputs))
-    cfg.inc = np.zeros((cfg.NumPlanet,Noutputs))
+    # Initialize Orbital Elements
+    for OrbVar in VarOut:
+        setattr(cfg,OrbVar,np.zeros((cfg.NumPlanet,Noutputs)))
 
-    # Cartesian coordinates
-    cfg.x = np.zeros((cfg.NumPlanet,Noutputs))
-    cfg.y = np.zeros((cfg.NumPlanet,Noutputs))
-    cfg.z = np.zeros((cfg.NumPlanet,Noutputs))
+    for CoordVar in CoordOut:
+        setattr(cfg,CoordVar,np.zeros((cfg.NumPlanet,Noutputs)))
 
     # The times at which it will output the orbital elements and coordinates
     cfg.times = np.linspace(0.,tmax,Noutputs)
@@ -170,6 +190,8 @@ def AddPlanets(model):
         MigaII()
     elif model=='MigaIII':
         MigaIII()
+    elif model=='MigaIVa':
+        MigaIVa()
     elif model=='Yanqin':
         Yanqin()
     else:
@@ -184,7 +206,7 @@ def ArrangeSys():
     global ps; ps = rebound.particles
     
     # Sets the time step to tenth of Inner Period
-    rebound.dt=0.1*np.sqrt(ps[1].calculate_orbit().a**3)
+    rebound.dt=0.01*np.sqrt(ps[1].calculate_orbit().a**3)
 
 def InitializeInteg(model,integrator):
     InitRebound(integrator)
@@ -193,7 +215,10 @@ def InitializeInteg(model,integrator):
 
 # Integrates from 0 to tmax and outputs orbital elements 
 # and coordinates at each time step.
-def OutputOrbit(Noutputs):
+def OutputOrbit(VarOut,Noutputs):
+
+    OrbOut = VarOut[0]
+    CoordOut = VarOut[1]
 
     # Initializes a counter for the number of steps
     step = 0
@@ -213,12 +238,10 @@ def OutputOrbit(Noutputs):
         
         # Writes the orbital elements and coordinates to cfg
         for j in range(cfg.NumPlanet):
-            cfg.a[j][i] = ps[j+1].calculate_orbit().a
-            cfg.e[j][i] = ps[j+1].calculate_orbit().e
-            cfg.inc[j][i] = ps[j+1].calculate_orbit().inc
-            cfg.x[j][i] = ps[j+1].x
-            cfg.y[j][i] = ps[j+1].y
-            cfg.z[j][i] = ps[j+1].z
+            for OrbVar in OrbOut:
+                getattr(cfg,OrbVar)[j][i] = getattr(ps[j+1].calculate_orbit(),
+                                                    OrbVar)
+
 
 def Print2File(array,FileName):
     Data = open('data/'+FileName+'.txt', 'a')
@@ -231,7 +254,7 @@ def Print2File(array,FileName):
     Data.write('\n')
     Data.close()
 
-def PlotvTime(array,ylabel):
+def PlotvTime(array,ylabel=None):
     plt.figure()
     plt.xlabel('Time (y)')
     plt.ylabel(ylabel)
@@ -286,23 +309,20 @@ def PlotLatex():
 
 if __name__=="__main__":
     
-    #model='simple' # Choose the initial conditions
-    #model='NASA'
-    #model='MigaI'
-    #model='MigaII'
-    #model='MigaIII'
-    model='Yanqin'
+    model='MigaIVa'
     integrator = 'ias15'
 
-    tmax = 10000. # Final time in years
-    Noutputs = 1000 # Number of outputs
+    tmax = 100. # Final time in years
+    Noutputs = 1001 # Number of outputs
     
+    OutputVar = [['a','e'],['x','y','z']]
+
     # Begins timing the integration
     time1 = time.time()
 
     InitializeInteg(model,integrator)
-    InitOrbitalElem(Noutputs,tmax)
-    OutputOrbit(Noutputs)
+    InitOrbitalElem(OutputVar,Noutputs,tmax)
+    OutputOrbit(OutputVar,Noutputs)
 
     # Prints total computational time to screen
     print time.time() - time1
@@ -311,13 +331,13 @@ if __name__=="__main__":
     OrbElem = np.concatenate((times,cfg.a,cfg.e))
     Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
 
-    Print2File(OrbElem,str(int(tmax))+model+integrator+'_OrbElem')
-    Print2File(OrbElem,str(int(tmax))+model+integrator+'_Coord')
+    #Print2File(OrbElem,str(int(tmax))+model+integrator+'_OrbElem')
+    #Print2File(OrbElem,str(int(tmax))+model+integrator+'_Coord')
 
     PlotLatex()
     Plot_a()
     Plot_e()
-    Plot_inc()
+    names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
     Plot_Orbit()
     Plot_xy()
 
