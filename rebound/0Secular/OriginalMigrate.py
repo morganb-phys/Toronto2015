@@ -14,26 +14,30 @@ def integration(tmax,tau):
     # Set up the integrator
     #---------------------------------------------------------------------
     rebound.reset()
-    rebound.dt=0.1*np.sqrt(0.09100**3)
-    rebound.integrator='whfast'
+    rebound.dt=0.01*np.sqrt(0.09111**3)
+    rebound.integrator='ias15'
     rebound.G=4.*np.pi**2
     
     
     # Add particles
     #---------------------------------------------------------------------
+
     K11 = rebound.Particle( m=0.950 )
     rebound.add( K11 )
-    rebound.add( primary=K11, m=5.70467e-6, a=0.09100, e=0.045, anom=0 ) #K11b
-    rebound.add( primary=K11, m=8.70713e-6, a=0.10700, e=0.026, anom=0 ) #K11c
-    rebound.add( primary=K11, m=2.19179e-5, a=0.15500, e=0.004, anom=0 ) #K11d
-    rebound.add( primary=K11, m=2.40197e-5, a=0.19500, e=0.012, anom=0 ) #K11e
-    rebound.add( primary=K11, m=6.00492e-6, a=0.25000, e=0.013, anom=0 ) #K11f
-    rebound.add( primary=K11, m=7.50615e-5, a=0.46600, e=0., anom=0 ) #K11g
-    '''
-    rebound.add( primary=K11, m=1.00000e-3, a=5.00000, e=0.050, anom=np.random.rand(1) ) #K11Jup1
-    rebound.add( primary=K11, m=1.00000e-3, a=7.50000, e=0.036, anom=np.random.rand(1)) #K11Jup2
-    '''
-    
+    rebound.add( primary=K11, m=1.2e-5, a=0.091110, anom=0.4528,
+                 e=0.0031, inc=1.54, omega=-1.861 )  #K11b       
+    rebound.add( primary=K11, m=3.6e-5, a=0.106497, anom=2.9540,
+                 e=0.0028, inc=1.55, omega=-1.170 )  #K11c      
+    rebound.add( primary=K11, m=2.3e-5, a=0.154141, anom=-0.1530,
+                 e=0.0195, inc=1.59, omega=-0.709 )  #K11d      
+    rebound.add( primary=K11, m=2.8e-5, a=0.193972, anom=1.3164,
+                 e=0.0160, inc=1.55, omega=-1.570 )  #K11e   
+    rebound.add( primary=K11, m=1.0e-5, a=0.249498, anom=0.3916,
+                 e=0.0125, inc=1.56, omega=-1.872 )  #K11f   
+    rebound.add( primary=K11, m=2.8e-6, a=0.463981, anom=0.6021,
+                 e=0. , inc=1.57 )  #K11g
+    rebound.add( m=1e-3, a=5.0, e=0.05, inc=89*np.pi/180 )  #Jup1
+    rebound.add( m=1e-3, a=7.5, e=0.03, inc=88.5*np.pi/180 )  #Jup2
     
     rebound.move_to_com()
     ps = rebound.particles
@@ -81,11 +85,13 @@ def integration(tmax,tau):
 
 # Call and time the function
 #---------------------------------------------------------------------
-tmax = 10000.
-tau = -1.92e6
+tmax = 1000000.
+tau = -2.55e7
+
 time1 = time.time()
 a,e,x,y,z,times = integration(tmax,tau)
 print time.time()-time1
+
 print len(a)
 print np.array(a[len(a)-1])
 
