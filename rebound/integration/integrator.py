@@ -239,10 +239,13 @@ def OutputOrbit(VarOut,Noutputs):
         # Writes the orbital elements and coordinates to cfg
         for j in range(cfg.NumPlanet):
             for OrbVar in OrbOut:
-                print OrbVar
-                getattr(cfg,OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
-                                                    OrbVar)
-
+                getattr(cfg,
+                        OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
+                                                OrbVar)
+            for CoordVar in CoordOut:
+                getattr(cfg,
+                        CoordVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
+                                                  CoordVar)
 
 def Print2File(array,FileName):
     Data = open('data/'+FileName+'.txt', 'a')
@@ -256,6 +259,8 @@ def Print2File(array,FileName):
     Data.close()
 
 def PlotvTime(array,ylabel=None):
+    print array.shape
+    print cfg.times.shape
     plt.figure()
     plt.xlabel('Time (y)')
     plt.ylabel(ylabel)
@@ -313,10 +318,10 @@ if __name__=="__main__":
     model='MigaIVa'
     integrator = 'ias15'
 
-    tmax = 100. # Final time in years
+    tmax = 100000. # Final time in years
     Noutputs = 1001 # Number of outputs
     
-    OutputVar = [['a','e'],['x','y','z']]
+    OutputVar = [['l'],[]]
 
     # Begins timing the integration
     time1 = time.time()
@@ -329,18 +334,22 @@ if __name__=="__main__":
     print time.time() - time1
 
     times = np.reshape(cfg.times,[1,Noutputs])
-    OrbElem = np.concatenate((times,cfg.a,cfg.e))
-    Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
+    #OrbElem = np.concatenate((times,cfg.a,cfg.e))
+    #Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
 
     #Print2File(OrbElem,str(int(tmax))+model+integrator+'_OrbElem')
-    #Print2File(OrbElem,str(int(tmax))+model+integrator+'_Coord')
+    #Print2File(Coord,str(int(tmax))+model+integrator+'_Coord')
 
     PlotLatex()
-    Plot_a()
-    Plot_e()
+    #Plot_a()
+    #Plot_e()
     names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Plot_Orbit()
-    Plot_xy()
+    for i in range(cfg.NumPlanet):
+        plt.figure()
+        plt.plot(cfg.times,cfg.l[i])
+        plt.title(names[i])
+    #Plot_Orbit()
+    #Plot_xy()
 
     # Show the plots
     plt.show()
