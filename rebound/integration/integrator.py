@@ -156,7 +156,7 @@ def InitOrbitalElem(VarOut,Noutputs,tmax):
     cfg.NumPlanet = rebound.N-1
     
     # Initialize Orbital Elements
-    for OrbVar in VarOut:
+    for OrbVar in OrbOut:
         setattr(cfg,OrbVar,np.zeros((cfg.NumPlanet,Noutputs)))
 
     for CoordVar in CoordOut:
@@ -203,10 +203,10 @@ def ArrangeSys():
     rebound.move_to_com()
 
     # Pointer for the planets where ps[0]=star and ps[1] is the first planet
-    global ps; ps = rebound.particles
+    cfg.ps = rebound.particles
     
     # Sets the time step to tenth of Inner Period
-    rebound.dt=0.01*np.sqrt(ps[1].calculate_orbit().a**3)
+    rebound.dt=0.01*np.sqrt(cfg.ps[1].calculate_orbit().a**3)
 
 def InitializeInteg(model,integrator):
     InitRebound(integrator)
@@ -239,7 +239,8 @@ def OutputOrbit(VarOut,Noutputs):
         # Writes the orbital elements and coordinates to cfg
         for j in range(cfg.NumPlanet):
             for OrbVar in OrbOut:
-                getattr(cfg,OrbVar)[j][i] = getattr(ps[j+1].calculate_orbit(),
+                print OrbVar
+                getattr(cfg,OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
                                                     OrbVar)
 
 
