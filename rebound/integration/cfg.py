@@ -1,6 +1,6 @@
 a = []
 e = []
-i = []
+inc = []
 l = []
 w = []
 f = []
@@ -17,5 +17,6 @@ vx = []
 vy = []
 vz = []
 
+ps = []
 times = []
 NumPlanet = 0
