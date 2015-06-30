@@ -318,10 +318,10 @@ if __name__=="__main__":
     model='MigaIVa'
     integrator = 'ias15'
 
-    tmax = 100000. # Final time in years
+    tmax = 100. # Final time in years
     Noutputs = 1001 # Number of outputs
     
-    OutputVar = [['l'],[]]
+    OutputVar = [['l','omega','Omega'],[]]
 
     # Begins timing the integration
     time1 = time.time()
@@ -344,9 +344,12 @@ if __name__=="__main__":
     #Plot_a()
     #Plot_e()
     names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    for i in range(cfg.NumPlanet):
+    print cfg.NumPlanet
+    for i in range(cfg.NumPlanet-1):
+        phi = cfg.omega[i]+cfg.Omega[i]-cfg.l[5]
         plt.figure()
-        plt.plot(cfg.times,cfg.l[i])
+        plt.title(names[i])
+        plt.plot(cfg.times,phi)
         plt.title(names[i])
     #Plot_Orbit()
     #Plot_xy()
