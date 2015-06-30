@@ -302,6 +302,7 @@ def Plot_Orbit():
     plt.ylabel('y')
     Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
     Colours = ['r','y','g','b','c','k','m','#fa8a29']
+    print cfg.NumPlanet
     for Planet in range(cfg.NumPlanet):
         ax.scatter(cfg.x[Planet],cfg.y[Planet],cfg.z[Planet],'o',s=5,
                    c=Colours[Planet],edgecolors='none', label=Names[Planet])
