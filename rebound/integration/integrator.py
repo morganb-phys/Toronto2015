@@ -131,15 +131,15 @@ def Yanqin():
 
     K11 = rebound.Particle( m=0.950 )
     rebound.add( K11 )
-    rebound.add( primary=K11, m=1.2e-5, a=0.091110, anom=0.4528,
+    rebound.add( primary=K11, m=1.2e-5, a=0.091110, MEAN=0.4555,
                  e=0.0031, inc=1.54, omega=-1.861 )  #K11b       
-    rebound.add( primary=K11, m=3.6e-5, a=0.106497, anom=2.9540,
+    rebound.add( primary=K11, m=3.6e-5, a=0.106497, anom=2.9514,
                  e=0.0028, inc=1.55, omega=-1.170 )  #K11c      
-    rebound.add( primary=K11, m=2.3e-5, a=0.154141, anom=-0.1530,
+    rebound.add( primary=K11, m=2.3e-5, a=0.154141, anom=6.1244,
                  e=0.0195, inc=1.59, omega=-0.709 )  #K11d      
-    rebound.add( primary=K11, m=2.8e-5, a=0.193972, anom=1.3164,
+    rebound.add( primary=K11, m=2.8e-5, a=0.193972, anom=1.3474,
                  e=0.0160, inc=1.55, omega=-1.570 )  #K11e   
-    rebound.add( primary=K11, m=1.0e-5, a=0.249498, anom=0.3916,
+    rebound.add( primary=K11, m=1.0e-5, a=0.249498, anom=0.4014,
                  e=0.0125, inc=1.56, omega=-1.872 )  #K11f   
     rebound.add( primary=K11, m=2.8e-6, a=0.463981, anom=0.6021,
                  e=0. , inc=1.57 )  #K11g
@@ -242,10 +242,10 @@ def OutputOrbit(VarOut,Noutputs):
                 getattr(cfg,
                         OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
                                                 OrbVar)
+
             for CoordVar in CoordOut:
                 getattr(cfg,
-                        CoordVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
-                                                  CoordVar)
+                        CoordVar)[j][i] = getattr(cfg.ps[j+1],CoordVar)
 
 def Print2File(array,FileName):
     Data = open('data/'+FileName+'.txt', 'a')
@@ -302,7 +302,6 @@ def Plot_Orbit():
     plt.ylabel('y')
     Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
     Colours = ['r','y','g','b','c','k','m','#fa8a29']
-    print cfg.NumPlanet
     for Planet in range(cfg.NumPlanet):
         ax.scatter(cfg.x[Planet],cfg.y[Planet],cfg.z[Planet],'o',s=5,
                    c=Colours[Planet],edgecolors='none', label=Names[Planet])
