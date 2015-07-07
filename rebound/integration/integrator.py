@@ -154,6 +154,8 @@ def InitOrbitalElem(VarOut,Noutputs,tmax):
 
     #Number of Planets
     cfg.NumPlanet = rebound.N-1
+    cfg.Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
+    cfg.Colours = ['r','y','g','b','c','k','m','#fa8a29']
     
     # Initialize Orbital Elements
     for OrbVar in OrbOut:
@@ -230,7 +232,7 @@ def OutputOrbit(VarOut,Noutputs):
         step += 1
 
         # Prints an update to screen on how far along integration is.
-        if step%(Noutputs/10) == 0:
+        if step%(Noutputs/10) == 1:
             print time
 
         # Integrate from rebound.t (previous time) to the new time
@@ -239,37 +241,47 @@ def OutputOrbit(VarOut,Noutputs):
         # Writes the orbital elements and coordinates to cfg
         for j in range(cfg.NumPlanet):
             for OrbVar in OrbOut:
-                getattr(cfg,
-                        OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
-                                                OrbVar)
+                getattr(cfg,OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(), OrbVar)
 
             for CoordVar in CoordOut:
                 getattr(cfg,
                         CoordVar)[j][i] = getattr(cfg.ps[j+1],CoordVar)
+        
 
+# prints entered array to text file with FileName
 def Print2File(array,FileName):
+
     Data = open('data/'+FileName+'.txt', 'a')
+    
+    # Finds the number of Planets and Times
     [Planet,Time] = np.ma.shape(array)
+    
     for t in range(Time):
         output = ''
+    
+        # Adds the next element in teh array to the t-th line
         for p in range(Planet):
             output = output+str(array[p,t])+' '
+
+            # Writes the entire line to file
         Data.write(output+'\n')
     Data.write('\n')
     Data.close()
 
+
+# Plots an array vs. cfg.times
 def PlotvTime(array,ylabel=None):
-    print array.shape
-    print cfg.times.shape
+
     plt.figure()
     plt.xlabel('Time (y)')
     plt.ylabel(ylabel)
-    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Colours = ['r','y','g','b','c','k','m','#fa8a29']
+
     for Planet in range(cfg.NumPlanet):
+
         plt.plot(cfg.times,array[Planet],
-                 color=Colours[Planet],label=Names[Planet])
+                 color=cfg.Colours[Planet],label=cfg.Names[Planet])
     plt.legend()
+
 
 # Plots Semi-Major axis vs. Time
 def Plot_a():
@@ -284,27 +296,30 @@ def Plot_e():
 
 # Plot in xy-Plane
 def Plot_xy():
+
     plt.figure()
     plt.xlabel('x')
     plt.ylabel('y')
-    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Colours = ['r','y','g','b','c','k','m','#fa8a29']
+
     for Planet in range(cfg.NumPlanet):
         plt.plot(cfg.x[Planet],cfg.y[Planet],'.',
-                 color=Colours[Planet],label=Names[Planet])
+                 color=cfg.Colours[Planet],label=cfg.Names[Planet])
     plt.legend()
+
 
 # 3D plot of the orbits
 def Plot_Orbit():
+
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     plt.xlabel('x')
     plt.ylabel('y')
-    Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    Colours = ['r','y','g','b','c','k','m','#fa8a29']
+
+    # edge colour dominates at this size of marker
     for Planet in range(cfg.NumPlanet):
         ax.scatter(cfg.x[Planet],cfg.y[Planet],cfg.z[Planet],'o',s=5,
-                   c=Colours[Planet],edgecolors='none', label=Names[Planet])
+                   c=cfg.Colours[Planet],edgecolors='none',
+                   label=cfg.Names[Planet])
     plt.legend()
 
 
@@ -318,10 +333,10 @@ if __name__=="__main__":
     model='MigaIVa'
     integrator = 'ias15'
 
-    tmax = 100. # Final time in years
+    tmax = 1000. # Final time in years
     Noutputs = 1001 # Number of outputs
     
-    OutputVar = [['l','omega','Omega'],[]]
+    OutputVar = [['a','e'],['x','y','z']]
 
     # Begins timing the integration
     time1 = time.time()
@@ -334,25 +349,18 @@ if __name__=="__main__":
     print time.time() - time1
 
     times = np.reshape(cfg.times,[1,Noutputs])
-    #OrbElem = np.concatenate((times,cfg.a,cfg.e))
-    #Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
+    OrbElem = np.concatenate((times,cfg.a,cfg.e))
+    Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
 
-    #Print2File(OrbElem,str(int(tmax))+model+integrator+'_OrbElem')
-    #Print2File(Coord,str(int(tmax))+model+integrator+'_Coord')
+    Print2File(OrbElem,str(int(tmax))+model+integrator+'_OrbElem')
+    Print2File(Coord,str(int(tmax))+model+integrator+'_Coord')
 
     PlotLatex()
-    #Plot_a()
-    #Plot_e()
-    names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
-    print cfg.NumPlanet
-    for i in range(cfg.NumPlanet-1):
-        phi = cfg.omega[i]+cfg.Omega[i]-cfg.l[5]
-        plt.figure()
-        plt.title(names[i])
-        plt.plot(cfg.times,phi)
-        plt.title(names[i])
-    #Plot_Orbit()
-    #Plot_xy()
+    Plot_a()
+    Plot_e()
+
+    Plot_Orbit()
+    Plot_xy()
 
     # Show the plots
     plt.show()
