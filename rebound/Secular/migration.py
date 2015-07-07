@@ -23,11 +23,10 @@ def Plot_innerOrbit():
     ax = fig.add_subplot(111, projection='3d')
     plt.xlabel('x')
     plt.ylabel('y')
-    Names = ['k11b','k11c','k11d','k11e','k11f','k11g']
     Colours = ['r','y','g','b','c','k']
-    for Planet in range(cfg.NumPlanet-2):
+    for Planet in range(6):
         ax.scatter(cfg.x[Planet],cfg.y[Planet],cfg.z[Planet],'o',s=5,
-                   c=Colours[Planet],edgecolors='none', label=Names[Planet])
+                   c=Colours[Planet],edgecolors='none', label=cfg.Names[Planet])
     plt.legend()
     
 
@@ -45,24 +44,27 @@ def CloseEnc(VarOut,Noutputs):
         
             #Updates the counter
             step += 1
+            print step
 
             # Prints an update to screen on how far along integration is.
             if step%(Noutputs/10) == 0:
                 print time
 
             # Integrate from rebound.t (previous time) to the new time
-            rebound.integrate(time,minD=0.01)
+            rebound.integrate(time,minD=0.001)
         
             # Writes the orbital elements and coordinates to cfg
             for j in range(cfg.NumPlanet):
+                com = rebound.calculate_com(j)
                 for OrbVar in OrbOut:
                     getattr(cfg,
-                            OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(),
-                                                    OrbVar)
+                            OrbVar)[j][i] = getattr(cfg.ps[j+1].calculate_orbit(primary=com),OrbVar)
                 for CoordVar in CoordOut:
                     getattr(cfg,
                             CoordVar)[j][i] = getattr(cfg.ps[j+1],CoordVar)
-
+            if cfg.ps[1].x == 'nan':
+                print 'Not a number'
+                sys.exit()
                 
     except rebound.CloseEncounter as e:
         print "Close encounter detected at t=%f, between particles %d and %d." % (rebound.t, e.id1, e.id2)
@@ -70,7 +72,7 @@ def CloseEnc(VarOut,Noutputs):
 
 if __name__=="__main__":
     
-    model='Yanqin'
+    model='MigaIVa'
     integrator='ias15'
 
     VarOut = [['a','e','inc'],['x','y','z']]
@@ -84,8 +86,7 @@ if __name__=="__main__":
     itg.InitRebound(integrator)
 
     itg.AddPlanets(model)
-    rebound.add( m=1e-3, a=9.0, e=0.05, inc=89.*np.pi/180. )  #Jup1
-    #rebound.add( m=1e-3, a=7.5, e=0.03, inc=88.5*np.pi/180. )  #Jup2
+    rebound.add( m=1e-3, a=8.2, e=0.05, inc=89.*np.pi/180. )  #Jup1
 
     itg.ArrangeSys()
 
@@ -97,21 +98,16 @@ if __name__=="__main__":
     
     print time.time() - time1
 
-    print cfg.a[:,Noutputs-1]
+    #times = np.reshape(cfg.times,[1,Noutputs])
+    #OrbElem = np.concatenate((times,cfg.a,cfg.e,cfg.inc))
+    #Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
 
-
-    times = np.reshape(cfg.times,[1,Noutputs])
-    OrbElem = np.concatenate((times,cfg.a,cfg.e,cfg.inc))
-    Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
-
-    itg.Print2File(OrbElem,
-                     'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
-                     +model+'_'+integrator+'_OrbElem')
-    itg.Print2File(Coord,
-                     'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
-                     +model+'_'+integrator+'_Coord')
-
-    
+    #itg.Print2File(OrbElem,
+    #                 'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
+    #                 +model+'_'+integrator+'_OrbElem')
+    #itg.Print2File(Coord,
+    #                 'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
+    #                 +model+'_'+integrator+'_Coord')
 
     itg.PlotLatex()
     itg.Plot_a()
