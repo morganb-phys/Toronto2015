@@ -118,7 +118,7 @@ void integrator_ias15_part2(void){
 }
  
 int integrator_ias15_step(void) {
-	if(dt < 1.e-8){
+	if(dt < 1.e-10){
 		int mini = -1;
 		int minj = -1;
 		double mind = 1.;
