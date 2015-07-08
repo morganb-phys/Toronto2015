@@ -13,11 +13,3 @@ The majority of the code uses [Rebound](https://github.com/hannorein/rebound) wh
 * David S. Spiegel, Institute for Advanced Study (IAS), Princeton, <dave@ias.edu>
 * Akihiko Fujii, National Astronomical Observatory of Japan/University of Tokyo, Tokyo, <akihiko.fujii@nao.ac.jp>
 * Dan Tamayo, University of Toronto, <dtamayo@cita.utoronto.ca>
-
-####integrator.py
-
-This is what integrator.py does...
-
-####Secular
-
-This is the main purpose of Secular...
