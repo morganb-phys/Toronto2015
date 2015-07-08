@@ -217,7 +217,7 @@ def InitializeInteg(model,integrator):
 
 # Integrates from 0 to tmax and outputs orbital elements 
 # and coordinates at each time step.
-def OutputOrbit(VarOut,Noutputs):
+def OutputOrbit(VarOut,Noutputs,TimeUpdate=True):
 
     OrbOut = VarOut[0]
     CoordOut = VarOut[1]
@@ -228,12 +228,14 @@ def OutputOrbit(VarOut,Noutputs):
     # Runs through the times 
     for i,time in enumerate(cfg.times):
         
-        #Updates the counter
-        step += 1
 
-        # Prints an update to screen on how far along integration is.
-        if step%(Noutputs/10) == 1:
-            print time
+        if TimeUpdate==True:
+            #Updates the counter
+            step += 1
+
+            # Prints an update to screen on how far along integration is.
+            if step%(Noutputs/10) == 1:
+                print time
 
         # Integrate from rebound.t (previous time) to the new time
         rebound.integrate(time)

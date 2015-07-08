@@ -50,7 +50,7 @@ def Destab(tmax,VarOut,Nout):
     
     print '\nTime ellapsed:'
 
-    while CheckSMA(a,aHigh,aLow)==True and Time<tmax-dt:
+    while CheckSMA(a,aHigh,aLow)==True and Time<tmax:
  
         if step%(Nout/10) == 1:
             print '\t'+str(Time)+' yr'
