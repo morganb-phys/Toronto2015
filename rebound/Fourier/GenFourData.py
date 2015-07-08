@@ -80,7 +80,8 @@ def FourierTransform(array,tmax,Nout, Plot=None):
 
     elif Plot == 'period':
         plt.figure()
-        plt.xlabel('Frequency $(yr^{-1})$')
+        plt.xlabel('Period (yr)')
+        plt.xlim([0,100])
         for i in range(cfg.NumPlanet):
             plt.plot(1./freq[1:],np.absolute(ft[i][1:Nout/2]),
                      label=cfg.Names[i])
@@ -95,7 +96,7 @@ if __name__=="__main__":
     VarOut = [['Omega','e','omega','a'],['x','y','z']]
 
     tmax = 5000. #years
-    Nout = 10001
+    Nout = 1001
 
     time1 = time.time()
 
@@ -120,9 +121,11 @@ if __name__=="__main__":
     ecospulmega = np.array(cfg.e)*cos(np.array(cfg.Omega)+np.array(cfg.omega))
     esinpulmega = np.array(cfg.e)*sin(np.array(cfg.Omega)+np.array(cfg.omega))
 
-    FileName = 'dt'+str(tmax/(Nout-1.))+'_eOo.txt'
-    eOo = np.concatenate((cfg.times,cfg.e,cfg.Omega,cfg.omega))
-    itg.Print2File(Coord)
+    print np.array(cfg.times).shape
+    FileName = 'dt'+str(tmax/(Nout-1.))+'_Nout'+str(Nout)+'_eOo.txt'
+    times = np.reshape(cfg.times,[1,Nout])
+    eOo = np.concatenate((times,cfg.e,cfg.Omega,cfg.omega))
+    itg.Print2File(eOo,FileName)
 
     itg.PlotvTime(ecospulmega,'$e\cdot cos(\~{\omega})$')
     itg.PlotvTime(esinpulmega,'$e\cdot sin(\~{\omega})$')

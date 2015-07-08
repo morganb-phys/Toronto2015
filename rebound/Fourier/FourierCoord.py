@@ -73,14 +73,18 @@ def PeakWidth():
 def FindFreq():
     pass
 
-def VarfromFile(Nout,tmax,NumP):
+def VarfromFile(Nout,NumP,tmax = None,FileName = None):
     # Read the data from the x-axis
-    File = open('data/'+"{:.0E}".format(tmax)+'Yanqin_X.txt','r')
+    
+    if FileName == None:
+        FileName = 'data/'+"{:.0E}".format(tmax)+'Yanqin_X.txt'
+
+    File = open(FileName,'r')
     NumVar = len(string.split(File.readline()))/NumP
 
     x = np.zeros([NumVar,NumP,Nout])
 
-    if isinstance(NumVar,int):
+    if len(string.split(File.readline()))%NumP == 0:
 
         for i,line in list(enumerate(File)):
             Line = string.split(line)
@@ -88,36 +92,45 @@ def VarfromFile(Nout,tmax,NumP):
                 Vars=Line[k*NumP:(k+1)*NumP]
                 for j,word in list(enumerate(Line)):
                     x[k][j][i] = float(word)
+
+        File.close()
+        return x
+
+
     else:
-        IncTime = raw_input('Did your file include a time index? (y/n)\n')
+        IncTime = raw_input('Did your file include a time index (y/n)?\t')
 
         if IncTime=='y':
 
-            time = np.zeros([Nout])
-
-            for i,line in list(enumerate(File)):
-                Line = string.split(line)
-                time[i] = Line[0]
+            time = np.zeros(Nout)
                 
-                for k in range(NumVar):
-                    Vars=Line[k*NumP+1:(k+1)*NumP+1]
+            for i,line in list(enumerate(File)):
                     
-                    for j,word in list(enumerate(Line)):
-                        x[k][j][i] = float(word)
+                Line = string.split(line)
+                if len(Line) != 0: 
+
+                    time[i] = Line[0]
+                
+                    for k in range(int(NumVar)):
+                        Vars=Line[k*NumP+1:(k+1)*NumP+1]
+                        
+                        for j,word in list(enumerate(Vars)):       
+                            x[k][j][i] = float(word)
      
+            File.close()
+            return time,x
+                            
         else:
             print 'Unable to read the data file.'
             sys.exit()
             
-    File.close()
-    return x
 
 
 if __name__=="__main__":
 
     Nout = 10001
     tmax=1.e2
-    x = VarfromFile(Nout,tmax,6)[0]
+    x = VarfromFile(Nout,6,tmax=tmax)[0]
     time = np.linspace(0,tmax,Nout)
     dt = tmax/(Nout-1.)
     Planets = ['k11b','k11c','k11d','k11e','k11f','k11g']
