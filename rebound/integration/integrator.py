@@ -272,11 +272,12 @@ def Print2File(array,FileName):
 
 
 # Plots an array vs. cfg.times
-def PlotvTime(array,ylabel=None):
+def PlotvTime(array,ylabel=None,Title=None):
 
     plt.figure()
     plt.xlabel('Time (y)')
     plt.ylabel(ylabel)
+    plt.title(Title)
 
     for Planet in range(cfg.NumPlanet):
 
@@ -286,22 +287,23 @@ def PlotvTime(array,ylabel=None):
 
 
 # Plots Semi-Major axis vs. Time
-def Plot_a():
-    PlotvTime(cfg.a,'Semi-Major Axis (AU)')
+def Plot_a(Title=None):
+    PlotvTime(cfg.a,'Semi-Major Axis (AU)',Title=Title)
     
-def Plot_inc():
-    PlotvTime(cfg.inc*180/np.pi,'Inclination ( $^{\circ}$ )')
+def Plot_inc(Title=None):
+    PlotvTime(cfg.inc*180/np.pi,'Inclination ( $^{\circ}$ )',Title=Title)
 
 # Plots Eccentricity vs. Time
-def Plot_e():
-    PlotvTime(cfg.e,'Eccentricity')
+def Plot_e(Title=None):
+    PlotvTime(cfg.e,'Eccentricity',Title=Title)
 
 # Plot in xy-Plane
-def Plot_xy():
+def Plot_xy(Title=None):
 
     plt.figure()
     plt.xlabel('x')
     plt.ylabel('y')
+    plt.title(Title)
 
     for Planet in range(cfg.NumPlanet):
         plt.plot(cfg.x[Planet],cfg.y[Planet],'.',
@@ -310,12 +312,13 @@ def Plot_xy():
 
 
 # 3D plot of the orbits
-def Plot_Orbit():
+def Plot_Orbit(Title=None):
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     plt.xlabel('x')
     plt.ylabel('y')
+    plt.title(Title)
 
     # edge colour dominates at this size of marker
     for Planet in range(cfg.NumPlanet):
