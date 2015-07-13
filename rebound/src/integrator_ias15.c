@@ -118,31 +118,6 @@ void integrator_ias15_part2(void){
 }
  
 int integrator_ias15_step(void) {
-	if(dt < 1.e-10){
-		int mini = -1;
-		int minj = -1;
-		double mind = 1.;
-		for (int i=0;i<N-N_megno;i++){
-		  struct particle pi = particles[i];
-		  for (int j=0;j<i;j++){
-			struct particle pj = particles[j];
-			const double x = pi.x-pj.x;
-			const double y = pi.y-pj.y;
-			const double z = pi.z-pj.z;
-			const double r2 = x*x + y*y + z*z;
-			if(r2 < mind){
-			  mind = r2;
-			  mini = i;
-			  minj = j;
-			}				  
-		  }
-		}
-		mind = sqrt(mind);
-		fprintf(stderr, "Close encounter between %d and %d.  Distance = %e\n", mini, minj, mind);
-		particles[0].x = NAN;
-		particles[0].y = NAN;
-		particles[0].z = NAN;
-	}
 	const int N3 = 3*N;
 	if (N3 > N3allocated) {
 		for (int l=0;l<7;++l) {
@@ -223,6 +198,7 @@ int integrator_ias15_step(void) {
 			const int integrator_iterations_warning = 10;
 			if (integrator_iterations_max_exceeded==integrator_iterations_warning ){
 				fprintf(stderr,"\n\033[1mWarning!\033[0m At least %d predictor corrector loops in integrator_ias15.c did not converge. This is typically an indication of the timestep being too large.\n",integrator_iterations_warning);
+				fprintf(stderr,'\n dt = %e \t Time = %e',dt,t)
 			}
 			break;								// Quit predictor corrector loop
 		}
