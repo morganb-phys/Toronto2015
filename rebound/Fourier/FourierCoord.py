@@ -1,14 +1,19 @@
 import numpy as np
+
 import scipy
-import matplotlib.pyplot as plt
-import string
+from scipy.stats import norm
 from scipy.fftpack import fft, fftfreq, fftshift
 from scipy import signal
-import integration.integrator as itg
-import sys
-import scipy.signal
-from scipy.stats import norm
+from scipy import optimize
+
+import matplotlib.pyplot as plt
+
 import math
+import string
+import sys
+
+import integration.integrator as itg
+
 
 
 def FindPeak(fourier,freq,dt,span=None):
@@ -34,25 +39,24 @@ def FindPeak(fourier,freq,dt,span=None):
     i = 0
     while True:
         i+=1
-        #print i
-        # Find largest pulse in masked time series
+        
+        # Find largest peak in masked time series
         currentMax=np.amax(np.abs(fourier)*mask)
 
-        # If larger than lowerbound, count as new pulse. Otherwise,
-        # break and notify user that not enough giant pulses exist
+        #Make sure we're not just finding peaks in the noise
         if currentMax>threshold:
 
             # Find location of current max
             currentMaxLoc=np.argmax(np.abs(fourier)*mask)
+
             pulseDict[currentMaxLoc]=currentMax
 
-            
             # Mask pulse from future searching
-            width = currentMax/5.e4
-            #print np.arange(max(0,math.floor(currentMaxLoc-width/freqSpace)),
-                           # math.ceil(currentMaxLoc+width/freqSpace),1)
-            mask[max(0,math.floor(currentMaxLoc-width/freqSpace)):
-                     math.ceil(currentMaxLoc+width/freqSpace)] = 0.     
+            width = PeakWidth(fourier,freq,currentMax,
+                              currentMaxLoc,freqSpace,method='gaussian') 
+ 
+            mask[width[0]:width[1]] = 0.  
+ 
         
         else:
             plt.figure()
@@ -66,12 +70,38 @@ def FindPeak(fourier,freq,dt,span=None):
     return [(i,pulseDict[i],freq[i]) for i in pulseList]    
 
     
+def f(x,a,b,c):
+    return a*np.exp(-(x-b)**2/(2.*c**2))
 
-def PeakWidth():
-    pass
+def laplace(x,a,b,c):
+    return a*np.exp(-np.abs(x-b)/c)
+
+def PeakWidth(fourier,freq,currentMax,currentMaxLoc,freqSpace,method=None):
     
-def FindFreq():
-    pass
+    if method == 'FracHeight' or method == None:
+        width = currentMax/5.e2
+        return [int(max(0,math.floor(currentMaxLoc-width/freqSpace))),
+                    int(math.ceil(currentMaxLoc+width/freqSpace))]
+
+    elif method == 'gaussian':
+ 
+        bins = PeakWidth(fourier,freq,currentMax,currentMaxLoc,freqSpace)
+       
+        popt,pcov = optimize.curve_fit(laplace,freq[bins[0]:bins[1]],
+                                       np.abs(fourier[bins[0]:bins[1]]))
+        freqmin = popt[1]-3.*popt[2]
+        freqmax = popt[1]+3.*popt[2]
+        
+        print popt
+        print freqmin
+        print freqmax
+
+        print currentMaxLoc
+        print  [max(0,math.floor(currentMaxLoc-freqmin/freqSpace)),
+                    math.ceil(currentMaxLoc+freqmax/freqSpace)]
+        return [max(0,math.floor(currentMaxLoc-freqmin/freqSpace)),
+                    math.ceil(currentMaxLoc+freqmax/freqSpace)]
+        
 
 def VarfromFile(Nout,NumP,tmax = None,FileName = None):
     # Read the data from the x-axis
@@ -157,35 +187,3 @@ if __name__=="__main__":
         plt.plot(freq,np.absolute(ft[i][0:Nout/2]),label=planet)
     plt.legend()
     plt.show()
-    '''
-    plt.figure()
-    plt.ylabel('Fourier Amplitude')
-    plt.xlabel('Frequency $(^\circ yr^{-1})$')
-    for i in range(6):
-        plt.plot(180./np.pi*freq, np.abs(ft[i][0:Nout/2]))
-        
-    plt.figure()
-    plt.ylabel('Fourier Amplitude')
-    plt.xlabel('Period (yr)')
-    for i in range(6):
-        plt.semilogx(1./freq, np.abs(ft[i][0:Nout/2]))
-
-    plt.figure()
-    plt.ylabel('Fourier Amplitude')
-    plt.xlabel('Period (yr)')
-    plt.xlim([20,2000])
-    for i in range(6):
-        plt.plot(1./freq, np.abs(ft[i][0:Nout/2]))
-
-    plt.figure()
-    plt.xlim([5*10**2,10**5])
-    plt.ylim([0,30])
-    plt.ylabel('Fourier Amplitude')
-    plt.xlabel('Period (yr)')
-    for i in range(6):
-        plt.semilogx(1./freq, np.abs(ft[i][0:Nout/2]))
-
-    plt.show()
-
-
-'''
