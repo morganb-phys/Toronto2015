@@ -1,13 +1,20 @@
-import numpy as np
 import rebound
-from numpy import ndarray 
-import sys
-import integration.integrator as itg
-import integration.cfg as cfg
 import reboundxf
-import matplotlib.pyplot as plt
+
+import numpy as np
+from numpy import ndarray
+ 
+import sys
 import time
+
+import integration.integrator as itg
+import Evection.Phi as phi
+import integration.cfg as cfg
+
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+
+
 
 
 def migration(planet,tau):
@@ -79,23 +86,28 @@ def migr(para):
     model='MigaIVa'
     integrator='ias15'
 
-    VarOut = [['a','e','inc'],['x','y','z']]
+    VarOut = [['a','e','Omega','omega','l'],['x','y','z']]
 
     tau = tmax/np.log(isma/fsma)
-    Noutputs = 1001
+    Nout = 1001
 
     itg.InitRebound(integrator)
 
     itg.AddPlanets(model)
     rebound.add( m=1e-3, a=isma, e=0.05, inc=89.*np.pi/180. )  #Jup1
 
+    rebound.save("Kepler11wJup.bin")
+
     itg.ArrangeSys()
 
-    itg.InitOrbitalElem(VarOut,Noutputs,tmax)
+    itg.InitOrbitalElem(VarOut,Nout,tmax)
 
     migration(7,tau)
 
-    CloseEnc(VarOut,Noutputs)
+    CloseEnc(VarOut,Nout)
+
+    Phi = phi.calcPhi(Nout)
+    phi.Plot_phi(isma,Phi,'Phi')
 
     '''
     times = np.reshape(cfg.times,[1,Noutputs])
@@ -124,10 +136,10 @@ if __name__=="__main__":
     #fsmas = [5.04,5.16,5.45,6.00,5.00,6.33,6.69,7.13,7.47,7.93,8.58,
     #         10.18,12.12,12.78,14.28,17.73,18.27]
 
-    tmax = 5.e5
+    tmax = 1.e6
 
-    ismas = [6.05]
-    fsmas = [6.03]
+    ismas = [71.]
+    fsmas = [68.]
 
     
     parameters = [(ismas[i],fsmas[i],tmax) for i in range(len(ismas))]
