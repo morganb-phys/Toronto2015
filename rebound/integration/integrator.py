@@ -156,7 +156,7 @@ def InitOrbitalElem(VarOut,Noutputs,tmax):
     cfg.NumPlanet = rebound.N-1
     cfg.Names = ['k11b','k11c','k11d','k11e','k11f','k11g','Jup1','Jup2']
     cfg.Colours = ['r','y','g','b','c','k','m','#fa8a29']
-    
+
     # Initialize Orbital Elements
     for OrbVar in OrbOut:
         setattr(cfg,OrbVar,np.zeros((cfg.NumPlanet,Noutputs)))
@@ -174,7 +174,7 @@ def InitRebound(integrator):
     # Resets any values stored by rebound
     rebound.reset()
 
-    # Chooses whfast as an integrator
+    # Chooses an integrator
     rebound.integrator=integrator
 
     # Sets G so units are AU, years, and solar masses
@@ -240,6 +240,13 @@ def OutputOrbit(VarOut,Noutputs,TimeUpdate=True):
         # Integrate from rebound.t (previous time) to the new time
         rebound.integrate(time)
         
+        '''
+        print 'Time: ', time
+        for i in range(cfg.NumPlanet):
+            print cfg.ps[i+1].calculate_orbit().e
+        os = rebound.calculate_orbits()
+        '''
+
         # Writes the orbital elements and coordinates to cfg
         for j in range(cfg.NumPlanet):
             for OrbVar in OrbOut:
