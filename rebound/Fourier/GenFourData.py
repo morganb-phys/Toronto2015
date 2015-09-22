@@ -7,7 +7,7 @@ from numpy import cos, sin
 
 import integration.integrator as itg
 import integration.cfg as cfg
-import integration.destabilization as dtb
+import integration.destab as dtb
 import FourierCoord as fc
 
 import matplotlib.pyplot as plt
@@ -19,10 +19,10 @@ import sys
 import time
 
 
-def RotateSystem():
+def RotateSystem(sim):
 
     # Find the angles corresponding to the angular momentum vector
-    phi, theta = CalcRotAngles()
+    phi, theta = CalcRotAngles(sim)
 
     # For the planets and the star rotate the system
     for i in range(cfg.NumPlanet+1):
@@ -57,10 +57,10 @@ def RotateSystem():
 
 
 
-def CalcRotAngles():
+def CalcRotAngles(sim):
 
     # Calculate angular momentum vector
-    L = CalcAngMomVect()
+    L = CalcAngMomVect(sim)
 
     # Calculate the angles by which to rotate the system 
     phi = np.arctan2(L[1],L[0])
@@ -69,7 +69,7 @@ def CalcRotAngles():
     return phi, theta
 
 
-def CalcAngMomVect():
+def CalcAngMomVect(sim):
     
     # Calculate the angular momentum of the star using
     # L = m(r x v)
@@ -78,8 +78,10 @@ def CalcAngMomVect():
     
     # Read the angular momentum of each planet from rebound
     # and add it to the total angular momentum
+    Orbits = sim.calculate_orbits()
+
     for i in range(cfg.NumPlanet): 
-        L = L+np.array(cfg.ps[i+1].calculate_orbit().hvec)*cfg.ps[i+1].m
+        L = L+np.array(Orbits[i].hvec)*cfg.ps[i+1].m
 
     # Normalize the angular momentum vector to a unit vector
     L = L/np.sqrt(L[0]**2+L[1]**2+L[2]**2)
@@ -119,6 +121,8 @@ def FourierTransform(array,tmax,Nout, Plot=None):
 
 if __name__=="__main__":
     
+    sim = rebound.Simulation()
+
     model='MigaIVa'
     integrator='ias15'
 
@@ -130,21 +134,21 @@ if __name__=="__main__":
     time1 = time.time()
 
     # Set up and perform the simulation in new coordinate frame
-    itg.InitRebound(integrator)
+    itg.InitRebound(integrator,sim)
 
-    itg.AddPlanets(model)
-    rebound.add( m=1e-3, a=8.2, e=0.05, inc=89.*np.pi/180. )  #Jup1
+    itg.AddPlanets(model,sim)
+    sim.add( m=1e-3, a=8.2, e=0.05, inc=89.*np.pi/180. )  #Jup1
     
-    itg.ArrangeSys()
+    itg.ArrangeSys(sim)
 
-    cfg.NumPlanet = rebound.N-1
+    cfg.NumPlanet = sim.N-1
 
-    RotateSystem()
+    RotateSystem(sim)
 
-    itg.ArrangeSys()
-    dtb.InitOrbElem2(VarOut,Nout,tmax)
+    itg.ArrangeSys(sim)
+    dtb.InitOrbElem2(VarOut,Nout,tmax,sim)
     
-    dtb.Destab(tmax,VarOut,Nout)
+    dtb.Destab(tmax,VarOut,Nout,sim)
 
     print 'Computational Time:', time.time()-time1
 

@@ -10,6 +10,7 @@ import time
 import integration.integrator as itg
 import Evection.Phi as phi
 import integration.cfg as cfg
+import integration.destab as dtb
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -18,9 +19,9 @@ from mpl_toolkits.mplot3d import Axes3D
 
 
 def migration(planet,tau):
-    #rebound.post_timestep_modifications = reboundxf.modify_elements()
+    rebound.post_timestep_modifications = reboundxf.modify_elements()
 
-    rebound.additional_forces = reboundxf.forces()
+    #rebound.additional_forces = reboundxf.forces()
 
     tauas = np.zeros(cfg.NumPlanet+1)
     tauas[planet] = tau
@@ -96,38 +97,56 @@ def migr(para):
     itg.AddPlanets(model)
     rebound.add( m=1e-3, a=isma, e=0.05, inc=89.*np.pi/180. )  #Jup1
 
-    rebound.save("Kepler11wJup.bin")
-
     itg.ArrangeSys()
 
-    itg.InitOrbitalElem(VarOut,Nout,tmax)
+    dtb.InitOrbElem2(VarOut,Nout,tmax)
 
     migration(7,tau)
 
-    CloseEnc(VarOut,Nout)
+    dtb.Destab(tmax,VarOut,Nout)
 
+    Nout = len(cfg.times)
+
+    itg.PlotLatex()
     Phi = phi.calcPhi(Nout)
     phi.Plot_phi(isma,Phi,'Phi')
-
-    '''
-    times = np.reshape(cfg.times,[1,Noutputs])
-    OrbElem = np.concatenate((times,cfg.a,cfg.e,cfg.inc))
+    
+    times = np.reshape(cfg.times,[1,Nout])
+    OrbElem = np.concatenate((times,cfg.a,cfg.e))
     Coord = np.concatenate((times,cfg.x,cfg.y,cfg.z))
+    Phi = np.concatenate((times,cfg.Omega,cfg.omega,cfg.l))
 
     itg.Print2File(OrbElem,
                      'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
-                     +str(isma)+'_OrbElem')
+                     +str(int(isma))+'_OrbElem')
     itg.Print2File(Coord,
                      'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
-                     +str(isma)+'_Coord')
-    '''
+                     +str(int(isma))+'_Coord')
+    itg.Print2File(Coord,
+                     'tmax'+str(int(tmax))+'_tau'+str(int(tau))+'_'
+                     +str(int(isma))+'_Phi')
 
-    itg.PlotLatex()
-    itg.Plot_a(Title=str(isma))
-    itg.Plot_e(Title=str(isma))
+    
+    strSMA = str(isma).replace('.','_')
+
+    itg.PlotvTime(cfg.a,'Semi-Major Axis (AU)',Title=str(isma),
+                  save=True,File='plots/'+strSMA+'/sma.png')
+    itg.PlotvTime(cfg.e,'Eccentricity',Title=str(isma),save=True,
+                  File='plots/'+strSMA+'/ecc.png')
+    
+    plt.figure()
+    plt.xlabel('Time (yr)')
+    plt.ylabel('Semi-Major Axis (AU)')
+    plt.title(str(isma))
+    
+    for Planet in range(cfg.NumPlanet-1):
+        plt.plot(cfg.times,cfg.a[Planet],
+                 color=cfg.Colours[Planet],label=cfg.Names[Planet])
+    plt.legend()
+    plt.savefig('plots/'+strSMA+'/sma_zoom.png')
 
     plt.show()
-
+    
 
 if __name__=="__main__":
 
@@ -136,14 +155,14 @@ if __name__=="__main__":
     #fsmas = [5.04,5.16,5.45,6.00,5.00,6.33,6.69,7.13,7.47,7.93,8.58,
     #         10.18,12.12,12.78,14.28,17.73,18.27]
 
-    tmax = 1.e6
+    tmax = 10000.
 
-    ismas = [71.]
-    fsmas = [68.]
+    ismas = [5.2]
+    fsmas = [5.16]
 
-    
     parameters = [(ismas[i],fsmas[i],tmax) for i in range(len(ismas))]
 
     pool = rebound.InterruptiblePool()
     pool.map(migr,parameters)
     
+
